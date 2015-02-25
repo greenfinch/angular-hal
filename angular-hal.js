@@ -1,5 +1,11 @@
 /* global angular */
 
+/**
+ * angular-hal - v0.1.5.1 - 2015-02-23
+ * https://github.com/LuvDaSun/angular-hal
+ * Forked to https://github.com/greenfinch/angular-hal
+ */
+
 angular.module('angular-hal', [])
 
 .service('halClient', [
@@ -8,6 +14,7 @@ angular.module('angular-hal', [])
         $http, $q, $window
     ) {
         var rfc6570 = $window.rfc6570;
+        var cache = undefined;
 
         this.$get = function (href, options) {
             return callService('GET', href, options);
@@ -29,6 +36,9 @@ angular.module('angular-hal', [])
             return callService('DELETE', href, options);
         }; //del
 
+        this.setCache = function (c) {
+            cache = c;
+        }; //setCache
 
         function Resource(href, options, data) {
             var linksAttribute = options.linksAttribute || '_links';
@@ -205,13 +215,15 @@ angular.module('angular-hal', [])
             if (!options.headers) options.headers = {};
             if (!options.headers['Content-Type']) options.headers['Content-Type'] = 'application/json';
             if (!options.headers.Accept) options.headers.Accept = 'application/hal+json,application/json';
+            if (!options.cache) options.cache = cache;
 
             var resource = (
                 $http({
                     method: method,
                     url: options.transformUrl ? options.transformUrl(href) : href,
                     headers: options.headers,
-                    data: data
+                    data: data,
+                    cache: options.cache
                 })
                 .then(function (res) {
 
